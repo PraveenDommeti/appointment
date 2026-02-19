@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%; /* Landing Primary - Blue */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.75rem;
+
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  /* Dashboard Theme: Black, Gold, White */
+  .dashboard-theme {
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 0 0% 0%; /* Deep Solid Black */
+    
+    --primary: 45 60% 53%; /* Premium Gold #D4AF37 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 45 60% 53%; /* Matching Gold */
+    --secondary-foreground: 0 0% 0%;
+    
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 10%; /* Much darker muted text (almost black) */
+    
+    --accent: 45 100% 96%;
+    --accent-foreground: 0 0% 0%;
+    
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 45 60% 53%;
+    
+    --sidebar-bg: 0 0% 5%; /* Ultra Dark Black */
+    --sidebar-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    /* ... rest of dark mode if needed ... */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+  .gold-gradient {
+    background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+  }
+  .black-card {
+    @apply bg-[#0b1120] text-white;
+  }
+}

@@ -1,0 +1,14 @@
+[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+transforming...
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[32m✓[39m 41 modules transformed.
+[31mx[39m Build failed in 1.96s
+[31merror during build:
+[31mCould not resolve "./trainer/TrainerMessages" from "src/pages/TrainerDashboard.tsx"[31m
+file: [36mC:/Users/gowth/Downloads/appointmentstd2/stdapp2/src/pages/TrainerDashboard.tsx[31m
+    at getRollupError (file:///C:/Users/gowth/Downloads/appointmentstd2/stdapp2/node_modules/rollup/dist/es/shared/parseAst.js:395:41)
+    at error (file:///C:/Users/gowth/Downloads/appointmentstd2/stdapp2/node_modules/rollup/dist/es/shared/parseAst.js:391:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/gowth/Downloads/appointmentstd2/stdapp2/node_modules/rollup/dist/es/shared/node-entry.js:20006:24)
+    at file:///C:/Users/gowth/Downloads/appointmentstd2/stdapp2/node_modules/rollup/dist/es/shared/node-entry.js:19966:26[39m

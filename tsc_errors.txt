@@ -1,0 +1,3 @@
+﻿src/pages/admin/AdminReports.tsx(1,29): error TS2307: Cannot find module '@/components/SharedAnalytics' or its corresponding type declarations.
+src/pages/student/StudentAnalytics.tsx(1,29): error TS2307: Cannot find module '@/components/SharedAnalytics' or its corresponding type declarations.
+src/pages/trainer/TrainerAnalytics.tsx(1,29): error TS2307: Cannot find module '@/components/SharedAnalytics' or its corresponding type declarations.
