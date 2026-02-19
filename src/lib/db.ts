@@ -1,6 +1,6 @@
 import { generateUUID } from "@/lib/utils";
 
-const API_URL = 'https://appointment-production-f6d9.up.railway.app/';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export interface User {
     id: string;
