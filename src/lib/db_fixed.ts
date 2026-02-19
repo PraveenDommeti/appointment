@@ -135,7 +135,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
 ];
 
 class RealDatabase {
-    private apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    private apiUrl = 'https://appointment-production-f6d9.up.railway.app/api';
 
     private async call(endpoint: string, method = 'GET', body?: any) {
         const response = await fetch(`${this.apiUrl}${endpoint}`, {
