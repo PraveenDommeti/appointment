@@ -32,10 +32,11 @@ const pool = mysql.createPool({
 
 const query = async (sql, params = []) => {
     try {
-        const [results] = await pool.execute(sql, params);
+        const [results] = await pool.query(sql, params);
         return results;
     } catch (err) {
-        console.error('❌ DB Query Error:', sql, err.message);
+        console.error('❌ DB Query Error:', sql);
+        console.error('Detailed Error:', err);
         throw err;
     }
 };
