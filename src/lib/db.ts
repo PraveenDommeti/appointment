@@ -1,6 +1,6 @@
 import { generateUUID } from "@/lib/utils";
 
-const API_URL = 'https://appointment-production-f6d9.up.railway.app/api';
+const API_URL = 'https://appointment-production-f6d9.up.railway.app/';
 
 export interface User {
     id: string;
