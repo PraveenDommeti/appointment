@@ -78,8 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // 1. Try API Login first
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://appointment-production-f6d9.up.railway.app/api';
-        const response = await fetch(`${apiUrl}/login`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://appointment-production-f6d9.up.railway.app';
+        const response = await fetch(`${apiUrl}/api/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),

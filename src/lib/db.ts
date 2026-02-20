@@ -1,6 +1,11 @@
 import { generateUUID } from "@/lib/utils";
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://appointment-production-f6d9.up.railway.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://appointment-production-f6d9.up.railway.app';
+
+// ... (interfaces)
+
+// In apiCall function:
+// const url = `${API_URL}/api${endpoint}`;
 
 export interface User {
     id: string;
@@ -141,7 +146,7 @@ export interface Material {
 // API Helper
 // ============================================
 async function apiCall(endpoint: string, method = 'GET', body?: any) {
-    const url = `${API_URL}${endpoint}`;
+    const url = `${API_URL}/api${endpoint}`;
     try {
         const options: RequestInit = {
             method,
