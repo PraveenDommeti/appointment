@@ -103,7 +103,7 @@ const AdminHome = () => {
                     id: u.id,
                     type: 'user',
                     text: `New Identity: ${u.name} (${u.role})`,
-                    time: new Date(u.joinedDate),
+                    time: u.joinedDate ? new Date(u.joinedDate) : new Date(),
                     icon: Users,
                     color: 'text-blue-500'
                 })),
@@ -111,7 +111,7 @@ const AdminHome = () => {
                     id: a.id,
                     type: 'appt',
                     text: `Session Request: ${a.topic}`,
-                    time: new Date(a.createdAt),
+                    time: a.createdAt ? new Date(a.createdAt) : new Date(),
                     icon: Calendar,
                     color: 'text-primary'
                 }))
@@ -203,7 +203,7 @@ const AdminHome = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl font-black tracking-tighter italic uppercase">Admin <span className="text-primary">Log</span></CardTitle>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Live System Events</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Live System Events & Activity Feeds</p>
                             </div>
                             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                         </div>

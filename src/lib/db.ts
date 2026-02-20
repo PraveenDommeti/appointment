@@ -157,6 +157,16 @@ async function apiCall(endpoint: string, method = 'GET', body?: any) {
     }
 }
 
+export interface Material {
+    id: string;
+    title: string;
+    type: "PDF" | "Video" | "Audio";
+    description: string;
+    size: string;
+    url: string;
+    date: string;
+}
+
 // ============================================
 // LOCAL CACHE - Syncs with MySQL periodically
 // Provides synchronous access for 40+ components
@@ -165,16 +175,18 @@ const cache = {
     users: [] as User[],
     courses: [] as Course[],
     appointments: [] as Appointment[],
+    materials: [] as Material[],
     loaded: false,
 };
 
 // Initialize: fetch from MySQL and store in cache
 async function syncCache() {
     try {
-        const [users, courses, appointments] = await Promise.all([
+        const [users, courses, appointments, materials] = await Promise.all([
             apiCall('/users'),
             apiCall('/courses'),
             apiCall('/appointments'),
+            apiCall('/materials'),
         ]);
         cache.users = users || [];
         cache.courses = (courses || []).map((c: any) => ({
@@ -182,14 +194,16 @@ async function syncCache() {
             studentsEnrolled: c.studentsEnrolled || [],
         }));
         cache.appointments = appointments || [];
+        (cache as any).materials = materials || []; // Temporary cast to any until interface updated
         cache.loaded = true;
         window.dispatchEvent(new Event('db-update'));
     } catch (e) {
         console.warn('⚠️ MySQL cache sync failed, using local fallback:', e);
-        // Fall back to localStorage if server is down
+        // Fall back to localStorage if server is down (only for read-only critical data)
         cache.users = JSON.parse(localStorage.getItem('classbook_users') || '[]');
         cache.courses = JSON.parse(localStorage.getItem('classbook_courses') || '[]');
         cache.appointments = JSON.parse(localStorage.getItem('classbook_appointments') || '[]');
+        (cache as any).materials = [];
     }
 }
 
@@ -492,15 +506,14 @@ class Database {
         return { totalStudents: uniqueStudents.size, sessionsConducted, upcoming, teachingHours: sessionsConducted };
     }
 
-    // --- MATERIALS (localStorage) ---
-    getMaterials(): any[] {
-        const data = localStorage.getItem('classbook_materials');
-        return data ? JSON.parse(data) : [];
+    // --- MATERIALS ---
+    getMaterials(): Material[] {
+        return (cache as any).materials || [];
     }
 
-    addMaterial(material: any): void {
-        const materials = this.getMaterials();
-        localStorage.setItem('classbook_materials', JSON.stringify([...materials, material]));
+    async addMaterial(material: Material): Promise<void> {
+        await apiCall('/materials', 'POST', material);
+        await syncCache();
     }
 
     // --- TIME LOGS (localStorage) ---

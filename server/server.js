@@ -461,6 +461,37 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// ============================================
+// MATERIALS
+// ============================================
+app.get('/api/materials', async (req, res) => {
+    try {
+        const results = await query('SELECT * FROM materials ORDER BY date DESC');
+        res.json(results);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/materials', async (req, res) => {
+    const { id, title, type, description, size, url, date } = req.body;
+    try {
+        await query(
+            'INSERT INTO materials (id, title, type, description, size, url, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id, title, type, description, size, url, date]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        console.error("ADD MATERIAL ERROR:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/materials/:id', async (req, res) => {
+    try {
+        await query('DELETE FROM materials WHERE id = ?', [req.params.id]);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`🚀 API Server ready on http://localhost:${PORT}`);
