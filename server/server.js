@@ -22,10 +22,11 @@ app.get('/', (req, res) => {
 
 // --- DATABASE CONNECTION ---
 const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: process.env.DB_HOST || process.env.MYSQLHOST,
+    user: process.env.DB_USER || process.env.MYSQLUSER,
+    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
+    database: process.env.DB_NAME || process.env.MYSQLDATABASE,
+    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
     waitForConnections: true,
     connectionLimit: 10,
 });
@@ -94,9 +95,21 @@ app.post('/api/login', async (req, res) => {
 // ============================================
 app.get('/api/users', async (req, res) => {
     try {
-        const results = await query('SELECT id, name, email, role, status, joinedDate, performanceScore FROM users');
+        console.log("USERS ROUTE HIT");
+
+        const results = await query(
+            'SELECT id, name, email, role, status FROM users'
+        );
+
+        console.log("QUERY SUCCESS:", results);
+
         res.json(results);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) {
+        console.error("🔥 USERS ROUTE ERROR FULL:", e);
+        res.status(500).json({
+            error: e?.message || "Unknown server error"
+        });
+    }
 });
 
 app.get('/api/users/:id', async (req, res) => {
