@@ -34,7 +34,7 @@ const StudentLeave = () => {
         return () => clearInterval(interval);
     }, [user]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !date || !reason || !type) {
             toast.error("Please fill in all fields");
@@ -51,8 +51,13 @@ const StudentLeave = () => {
             createdAt: new Date().toISOString()
         };
 
-        db.addLeaveRequest(newRequest);
-        toast.success("Leave request submitted successfully!");
+        try {
+            await db.addLeaveRequest(newRequest);
+            toast.success("Leave request submitted successfully!");
+        } catch (e) {
+            toast.error("Failed to submit leave request. Please try again.");
+            return;
+        }
 
         // Reset form
         setReason("");

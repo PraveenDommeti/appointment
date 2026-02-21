@@ -59,8 +59,8 @@ export function useNotifications(userId: string | undefined) {
         if (!userId) return;
 
         // Import db dynamically to avoid circular dependencies
-        import('@/lib/db').then(({ db }) => {
-            const userNotifications = db.getNotifications(userId);
+        import('@/lib/db').then(async ({ db }) => {
+            const userNotifications = await db.getNotifications(userId);
             setNotifications(userNotifications);
             setUnreadCount(userNotifications.filter(n => !n.read).length);
         });

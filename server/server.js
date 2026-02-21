@@ -106,7 +106,7 @@ app.get('/api/users', async (req, res) => {
         console.log("USERS ROUTE HIT");
 
         const results = await query(
-            'SELECT id, name, email, role, status FROM users'
+            'SELECT id, name, email, role, status, joinedDate, performanceScore FROM users'
         );
 
         console.log("QUERY SUCCESS:", results);
@@ -347,6 +347,15 @@ app.post('/api/messages', async (req, res) => {
         const msgId = id || crypto.randomUUID();
         await query('INSERT INTO messages (id, senderId, receiverId, text, status) VALUES (?,?,?,?,?)',
             [msgId, senderId, receiverId, text, status || 'sent']);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch('/api/messages/read', async (req, res) => {
+    const { viewerId, contactId } = req.body;
+    try {
+        await query('UPDATE messages SET status = ? WHERE receiverId = ? AND senderId = ? AND status != ?',
+            ['read', viewerId, contactId, 'read']);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });

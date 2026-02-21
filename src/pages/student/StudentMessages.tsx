@@ -42,7 +42,7 @@ const StudentMessages = () => {
         }
     }, [messages]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !selectedContact || !newMessage.trim()) return;
 
@@ -55,9 +55,9 @@ const StudentMessages = () => {
             status: 'sent'
         };
 
-        db.sendMessage(msg);
         setNewMessage("");
         setMessages([...messages, msg]);
+        await db.sendMessage(msg);
     };
 
     const filteredContacts = contacts.filter(c =>

@@ -146,7 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!dbUsers.find(u => u.id === authenticatedUser.id)) {
           // Add to session cache if missing (e.g. hard refresh cleared cache but localUser persisted)
           // We cast to any to avoid type collision between AuthContext.User and db.User
-          db.addUser({ ...authenticatedUser, status: "Active", joinedDate: new Date().toISOString() } as any);
+          // Fire-and-forget is OK here since this is a cache repair, not primary data
+          db.addUser({ ...authenticatedUser, status: "Active", joinedDate: new Date().toISOString() } as any).catch(console.warn);
         }
 
         setIsLoading(false);
@@ -173,8 +174,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const mockUserExists = MOCK_USERS.some((u) => u.email === email);
     const localUsers = JSON.parse(localStorage.getItem("classbook_local_users") || "[]");
     const localUserExists = localUsers.some((u: any) => u.email === email);
+    const dbUserExists = db.getUsers().some(u => u.email === email);
 
-    if (mockUserExists || localUserExists) {
+    if (mockUserExists || localUserExists || dbUserExists) {
       setIsLoading(false);
       throw new Error("User with this email already exists");
     }
@@ -197,12 +199,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userWithPassword = { ...newUser, password: hashedPassword };
     localStorage.setItem("classbook_local_users", JSON.stringify([...localUsers, userWithPassword]));
 
-    db.addUser({
-      ...newUser,
-      status: "Active",
-      joinedDate: new Date().toISOString(),
-      performanceScore: 0
-    });
+    try {
+      await db.addUser({
+        ...newUser,
+        password: hashedPassword,
+        status: "Active",
+        joinedDate: new Date().toISOString(),
+        performanceScore: 0
+      } as any);
+    } catch (e) {
+      console.error("Failed to save signup user to backend:", e);
+    }
 
     db.addSystemLog({
       userId: newUser.id,
@@ -256,12 +263,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       localStorage.setItem("classbook_local_users", JSON.stringify([...localUsers, { ...newUser, password: "google-auth-no-password" }]));
 
-      db.addUser({
-        ...newUser,
-        status: "Active",
-        joinedDate: new Date().toISOString(),
-        performanceScore: 0
-      });
+      try {
+        await db.addUser({
+          ...newUser,
+          password: "google-auth-no-password",
+          status: "Active",
+          joinedDate: new Date().toISOString(),
+          performanceScore: 0
+        } as any);
+      } catch (e) {
+        console.error("Failed to save Google user to backend:", e);
+      }
 
       setUser(newUser);
       localStorage.setItem("classbook_user", JSON.stringify(newUser));
@@ -288,8 +300,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const mockUserExists = MOCK_USERS.some((u) => u.email === email);
     const localUsers = JSON.parse(localStorage.getItem("classbook_local_users") || "[]");
     const localUserExists = localUsers.some((u: any) => u.email === email);
+    const dbUserExists = db.getUsers().some(u => u.email === email);
 
-    if (mockUserExists || localUserExists) {
+    if (mockUserExists || localUserExists || dbUserExists) {
       setIsLoading(false);
       throw new Error("User with this email already exists");
     }
@@ -312,12 +325,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userWithPassword = { ...newUser, password: hashedPassword };
     localStorage.setItem("classbook_local_users", JSON.stringify([...localUsers, userWithPassword]));
 
-    db.addUser({
-      ...newUser,
-      status: "Active",
-      joinedDate: new Date().toISOString(),
-      performanceScore: role === "student" ? 0 : undefined
-    });
+    // CRITICAL: await to ensure user is saved to MySQL before proceeding
+    // Include password so API login works
+    try {
+      await db.addUser({
+        ...newUser,
+        password: hashedPassword,
+        status: "Active",
+        joinedDate: new Date().toISOString(),
+        performanceScore: role === "student" ? 0 : undefined
+      } as any);
+    } catch (e) {
+      console.error("Failed to save user to backend:", e);
+      // User is still in localStorage so they can login locally
+    }
 
     db.addSystemLog({
       userId: createdBy,

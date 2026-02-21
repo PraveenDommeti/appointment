@@ -44,10 +44,10 @@ const AdminLeaveRequests = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const handleAction = (status: "Approved" | "Rejected") => {
+    const handleAction = async (status: "Approved" | "Rejected") => {
         if (!selectedRequest || !user) return;
 
-        db.updateLeaveRequestStatus(selectedRequest.id, status, user.id, reviewComments);
+        await db.updateLeaveRequestStatus(selectedRequest.id, status, user.id, reviewComments);
 
         // Create in-app notification for student
         db.createNotification({

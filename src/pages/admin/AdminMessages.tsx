@@ -49,7 +49,7 @@ const AdminMessages = () => {
         }
     }, [messages]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !selectedContact || !newMessage.trim()) return;
 
@@ -62,12 +62,12 @@ const AdminMessages = () => {
             status: 'sent'
         };
 
-        db.sendMessage(msg);
         setNewMessage("");
         setMessages([...messages, msg]);
+        await db.sendMessage(msg);
     };
 
-    const handleBroadcast = () => {
+    const handleBroadcast = async () => {
         if (!user || !broadcastMessage.trim()) return;
 
         let recipients = contacts;
@@ -75,7 +75,7 @@ const AdminMessages = () => {
             recipients = contacts.filter(c => c.role === broadcastFilter);
         }
 
-        recipients.forEach(recipient => {
+        for (const recipient of recipients) {
             const msg: Message = {
                 id: `msg-${Date.now()}-${recipient.id}`,
                 senderId: user.id,
@@ -84,7 +84,7 @@ const AdminMessages = () => {
                 timestamp: new Date().toISOString(),
                 status: 'sent'
             };
-            db.sendMessage(msg);
+            await db.sendMessage(msg);
 
             // Also create notification
             db.createNotification({
@@ -94,7 +94,7 @@ const AdminMessages = () => {
                 type: "info",
                 category: "message"
             });
-        });
+        }
 
         toast.success(`Broadcast sent to ${recipients.length} users`);
         setBroadcastMessage("");

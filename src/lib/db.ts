@@ -134,12 +134,12 @@ export interface CalendarEvent {
 
 export interface Material {
     id: string;
-    courseId: string;
     title: string;
-    type: string;
+    type: "PDF" | "Video" | "Audio";
+    description: string;
+    size: string;
     url: string;
-    uploadedBy: string;
-    uploadedAt: string;
+    date: string;
 }
 
 // ============================================
@@ -162,15 +162,6 @@ async function apiCall(endpoint: string, method = 'GET', body?: any) {
     }
 }
 
-export interface Material {
-    id: string;
-    title: string;
-    type: "PDF" | "Video" | "Audio";
-    description: string;
-    size: string;
-    url: string;
-    date: string;
-}
 
 // ============================================
 // LOCAL CACHE - Syncs with MySQL periodically
@@ -181,17 +172,19 @@ const cache = {
     courses: [] as Course[],
     appointments: [] as Appointment[],
     materials: [] as Material[],
+    leaveRequests: [] as any[],
     loaded: false,
 };
 
 // Initialize: fetch from MySQL and store in cache
 async function syncCache() {
     try {
-        const [users, courses, appointments, materials] = await Promise.all([
+        const [users, courses, appointments, materials, leaveRequests] = await Promise.all([
             apiCall('/users'),
             apiCall('/courses'),
             apiCall('/appointments'),
             apiCall('/materials'),
+            apiCall('/leave-requests'),
         ]);
         cache.users = users || [];
         cache.courses = (courses || []).map((c: any) => ({
@@ -199,7 +192,8 @@ async function syncCache() {
             studentsEnrolled: c.studentsEnrolled || [],
         }));
         cache.appointments = appointments || [];
-        (cache as any).materials = materials || []; // Temporary cast to any until interface updated
+        cache.materials = materials || [];
+        cache.leaveRequests = leaveRequests || [];
         cache.loaded = true;
         window.dispatchEvent(new Event('db-update'));
     } catch (e) {
@@ -208,7 +202,8 @@ async function syncCache() {
         cache.users = JSON.parse(localStorage.getItem('classbook_users') || '[]');
         cache.courses = JSON.parse(localStorage.getItem('classbook_courses') || '[]');
         cache.appointments = JSON.parse(localStorage.getItem('classbook_appointments') || '[]');
-        (cache as any).materials = [];
+        cache.materials = [];
+        cache.leaveRequests = JSON.parse(localStorage.getItem('classbook_leave_requests') || '[]');
     }
 }
 
@@ -369,6 +364,10 @@ class Database {
     }
 
     markMessagesAsRead(viewerId: string, contactId: string): void {
+        // Update in MySQL via API
+        apiCall('/messages/read', 'PATCH', { viewerId, contactId }).catch(console.warn);
+
+        // Also update localStorage for offline/fallback
         const data = localStorage.getItem('classbook_messages');
         if (!data) return;
 
@@ -395,15 +394,28 @@ class Database {
         });
     }
 
-    getNotifications(userId: string): Notification[] {
-        // Return from local cache for now (sync based)
-        const data = localStorage.getItem('classbook_notifications');
-        const all = data ? JSON.parse(data) : [];
-        return all.filter((n: any) => n.userId === userId);
+    async getNotifications(userId: string): Promise<Notification[]> {
+        try {
+            const notifications = await apiCall(`/notifications/${userId}`);
+            return notifications || [];
+        } catch (e) {
+            console.warn('Failed to fetch notifications from API, using local fallback');
+            const data = localStorage.getItem('classbook_notifications');
+            const all = data ? JSON.parse(data) : [];
+            return all.filter((n: any) => n.userId === userId);
+        }
     }
 
     markNotificationAsRead(id: string): void {
         apiCall(`/notifications/${id}/read`, 'PATCH').catch(console.warn);
+    }
+
+    markAllNotificationsAsRead(userId: string): void {
+        this.getNotifications(userId).then(notifications => {
+            notifications.filter(n => !n.read).forEach(n => {
+                this.markNotificationAsRead(n.id);
+            });
+        }).catch(console.warn);
     }
 
     deleteNotification(id: string): void {
@@ -412,35 +424,29 @@ class Database {
 
     // --- LEAVE REQUESTS ---
     getLeaveRequests(userId?: string): any[] {
-        const data = localStorage.getItem('classbook_leave_requests');
-        const all = data ? JSON.parse(data) : [];
+        // Read from synced cache (populated from MySQL API)
+        const all = cache.leaveRequests || [];
         return userId ? all.filter((l: any) => l.userId === userId) : all;
     }
 
     async addLeaveRequest(request: any): Promise<void> {
-        // Optimistically update local storage first so UI helps immediately
-        const requests = this.getLeaveRequests();
-        localStorage.setItem('classbook_leave_requests', JSON.stringify([...requests, request]));
-
         try {
             await apiCall('/leave-requests', 'POST', request);
+            await syncCache();
         } catch (e) {
-            console.warn('API sync failed for addLeaveRequest, kept local');
+            console.warn('API sync failed for addLeaveRequest, saving locally');
+            // Fallback: save to localStorage if API is down
+            const localRequests = JSON.parse(localStorage.getItem('classbook_leave_requests') || '[]');
+            localStorage.setItem('classbook_leave_requests', JSON.stringify([...localRequests, request]));
         }
     }
 
     async updateLeaveRequestStatus(id: string, status: string, reviewedBy?: string, comments?: string): Promise<void> {
-        // Optimistically update local storage first
-        const requests = this.getLeaveRequests();
-        const updatedRequests = requests.map((r: any) =>
-            r.id === id ? { ...r, status, reviewedBy, comments, reviewedAt: new Date().toISOString() } : r
-        );
-        localStorage.setItem('classbook_leave_requests', JSON.stringify(updatedRequests));
-
         try {
             await apiCall(`/leave-requests/${id}`, 'PATCH', { status, reviewedBy, comments });
+            await syncCache();
         } catch (e) {
-            console.warn('API sync failed for updateLeaveRequestStatus, kept local');
+            console.warn('API sync failed for updateLeaveRequestStatus');
         }
     }
 
@@ -513,7 +519,7 @@ class Database {
 
     // --- MATERIALS ---
     getMaterials(): Material[] {
-        return (cache as any).materials || [];
+        return cache.materials || [];
     }
 
     async addMaterial(material: Material): Promise<void> {

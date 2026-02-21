@@ -49,7 +49,7 @@ This guide will help you deploy your full-stack application.
     *   Click "Site configuration" -> "Environment variables".
     *   Add a new variable:
         *   **Key**: `VITE_API_URL`
-        *   **Value**: Your Railway Backend URL + `/api` (e.g., `https://web-production-1234.up.railway.app/api`)
+        *   **Value**: Your Railway Backend URL (e.g., `https://web-production-1234.up.railway.app`) (Note: Do NOT add `/api` at the end as the code handles it).
 5.  **Deploy**:
     *   Click "Deploy site".
 
